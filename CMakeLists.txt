@@ -153,7 +153,7 @@ set(RANDOMX_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomX Incl
 
 add_library(randomx
   ${randomx_sources})
-set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
 set_property(TARGET randomx PROPERTY CXX_STANDARD_REQUIRED ON)
 install(TARGETS randomx
@@ -164,7 +164,7 @@ add_executable(randomx-tests
   src/tests/tests.cpp)
 target_link_libraries(randomx-tests
   PRIVATE randomx)
-set_property(TARGET randomx-tests PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET randomx-tests PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx-tests PROPERTY CXX_STANDARD 11)
 
 add_executable(randomx-codegen
@@ -172,7 +172,7 @@ add_executable(randomx-codegen
 target_link_libraries(randomx-codegen
   PRIVATE randomx)
 
-set_property(TARGET randomx-codegen PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET randomx-codegen PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx-codegen PROPERTY CXX_STANDARD 11)
 
 if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
@@ -200,5 +200,5 @@ if(NOT HAVE_CXX_ATOMICS)
   target_link_libraries(randomx-benchmark
     PRIVATE "atomic")
 endif()
-set_property(TARGET randomx-benchmark PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET randomx-benchmark PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET randomx-benchmark PROPERTY CXX_STANDARD 11)
