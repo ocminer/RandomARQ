@@ -70,12 +70,12 @@ int main() {
 	//std::cout << "Allocating randomx_cache..." << std::endl;
 	cache = randomx_alloc_cache(RANDOMX_FLAG_DEFAULT);
 
-	runTest("Cache initialization", RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"),	[]() {
+	runTest("Cache initialization", RANDOMX_ARGON_ITERATIONS == 1 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"),	[]() {
 		initCache("test key 000");
 		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
+		assert(cacheMemory[0] == 0x974d73241c31484e);
+		assert(cacheMemory[1568413] == 0x83ff7e51b96762f);
+		assert(cacheMemory[33554431] == 0x9c3f146fa4fa223a);
 	});
 
 	runTest("SuperscalarHash generator", RANDOMX_SUPERSCALAR_LATENCY == 170, []() {
@@ -129,13 +129,13 @@ int main() {
 		initCache("test key 000");
 		uint64_t datasetItem[8];
 		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 0);
-		assert(datasetItem[0] == 0x680588a85ae222db);
+		assert(datasetItem[0] == 0x6f21c3d27a471c56);
 		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 10000000);
-		assert(datasetItem[0] == 0x7943a1f6186ffb72);
+		assert(datasetItem[0] == 0xcfe006ab42d0f3fd);
 		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 20000000);
-		assert(datasetItem[0] == 0x9035244d718095e1);
+		assert(datasetItem[0] == 0x67d2689c5855af98);
 		randomx::initDatasetItem(cache, (uint8_t*)&datasetItem, 30000000);
-		assert(datasetItem[0] == 0x145a5091f7853099);
+		assert(datasetItem[0] == 0x2a6985a68c4d9a38);
 	});
 
 	runTest("Dataset initialization (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
@@ -146,13 +146,13 @@ int main() {
 		jit.enableAll();
 		uint64_t datasetItem[8];
 		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 0, 1);
-		assert(datasetItem[0] == 0x680588a85ae222db);
+		assert(datasetItem[0] == 0x6f21c3d27a471c56);
 		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 10000000, 10000001);
-		assert(datasetItem[0] == 0x7943a1f6186ffb72);
+		assert(datasetItem[0] == 0xcfe006ab42d0f3fd);
 		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 20000000, 20000001);
-		assert(datasetItem[0] == 0x9035244d718095e1);
+		assert(datasetItem[0] == 0x67d2689c5855af98);
 		jit.getDatasetInitFunc()(cache, (uint8_t*)&datasetItem, 30000000, 30000001);
-		assert(datasetItem[0] == 0x145a5091f7853099);
+		assert(datasetItem[0] == 0x2a6985a68c4d9a38);
 	});
 
 	runTest("AesGenerator1R", true, []() {
@@ -955,25 +955,25 @@ int main() {
 	auto test_a = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "This is a test", &hash);
-		assert(equalsHex(hash, "639183aae1bf4c9a35884cb46b09cad9175f04efd7684e7262a0ac1c2f0b4e3f"));
+		assert(equalsHex(hash, "27f66e4650eb5657513e76c140e09e59336786f21fbef1ed6ff40fc21538221e"));
 	};
 
 	auto test_b = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "Lorem ipsum dolor sit amet", &hash);
-		assert(equalsHex(hash, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
+		assert(equalsHex(hash, "6b04e883e07e4e6c072cb064d9aed0fa5a8f7cbbeb7fd3ba653d274ebd4925b0"));
 	};
 
 	auto test_c = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", &hash);
-		assert(equalsHex(hash, "c36d4ed4191e617309867ed66a443be4075014e2b061bcdaf9ce7b721d2b77a8"));
+		assert(equalsHex(hash, "219d023039c92bdf98df769a46d2cea6f1f3ceafcba2334edfbd90499a4b516f"));
 	};
 
 	auto test_d = [&] {
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 001", "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua", &hash);
-		assert(equalsHex(hash, "e9ff4503201c0c2cca26d285c93ae883f9b1d30c9eb240b820756f2d5a7905fc"));
+		assert(equalsHex(hash, "665cc87ea512d5353c39e60472e8937373e59c648288b82846847acc226dfcb7"));
 	};
 
 	auto test_e = [&] {
@@ -982,7 +982,7 @@ int main() {
 		//std::cout << std::endl;
 		//outputHex(std::cout, (const char*)hash, sizeof(hash));
 		//std::cout << std::endl;
-		assert(equalsHex(hash, "c56414121acda1713c2f2a819d8ae38aed7c80c35c2a769298d34f03833cd5f1"));
+		assert(equalsHex(hash, "f7dac83c948cc4a3429723c2059e536dda6f1f9d5325f02216db7f1cf82f5aa8"));
 	};
 
 	runTest("Hash test 1a (interpreter)", stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), test_a);
@@ -1020,24 +1020,24 @@ int main() {
 	randomx_release_cache(cache);
 	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_SSSE3);
 
-	runTest("Cache initialization: SSSE3", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
+	runTest("Cache initialization: SSSE3", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 1 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
 		initCache("test key 000");
 		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
+		assert(cacheMemory[0] == 0x974d73241c31484e);
+		assert(cacheMemory[1568413] == 0x83ff7e51b96762f);
+		assert(cacheMemory[33554431] == 0x9c3f146fa4fa223a);
 	});
 
 	if (cache != nullptr)
 		randomx_release_cache(cache);
 	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_AVX2);
 
-	runTest("Cache initialization: AVX2", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
+	runTest("Cache initialization: AVX2", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 1 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
 		initCache("test key 000");
 		uint64_t* cacheMemory = (uint64_t*)cache->memory;
-		assert(cacheMemory[0] == 0x191e0e1d23c02186);
-		assert(cacheMemory[1568413] == 0xf1b62fe6210bf8b1);
-		assert(cacheMemory[33554431] == 0x1f47f056d05cd99b);
+		assert(cacheMemory[0] == 0x974d73241c31484e);
+		assert(cacheMemory[1568413] == 0x83ff7e51b96762f);
+		assert(cacheMemory[33554431] == 0x9c3f146fa4fa223a);
 	});
 
 	if (cache != nullptr)
