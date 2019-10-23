@@ -469,7 +469,7 @@ int main() {
 		decoder.executeInstruction(ibc, pc, nullptr, config);
 		assert(reg.r[registerDst] == 1);
 	});
-	
+
 	runTest("IXOR_R (decode)", RANDOMX_FREQ_IXOR_R > 0, [&] {
 		randomx::Instruction instr;
 		instr.opcode = randomx::ceil_IXOR_R - 1;
@@ -1025,14 +1025,16 @@ int main() {
 	runTest("Hash test 2d (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), test_d);
 
 	runTest("Hash test 2e (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), test_e);
-	
+
 	randomx_destroy_vm(vm);
 	vm = nullptr;
+
+	auto flags = randomx_get_flags();
 
 	randomx_release_cache(cache);
 	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_SSSE3);
 
-	runTest("Cache initialization: SSSE3", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 1 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
+	runTest("Cache initialization: SSSE3", (flags & RANDOMX_FLAG_ARGON2_SSSE3) && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
 		initCache("test key 000");
 		uint64_t* cacheMemory = (uint64_t*)cache->memory;
 		assert(cacheMemory[0] == 0x974d73241c31484e);
@@ -1044,7 +1046,7 @@ int main() {
 		randomx_release_cache(cache);
 	cache = randomx_alloc_cache(RANDOMX_FLAG_ARGON2_AVX2);
 
-	runTest("Cache initialization: AVX2", cache != nullptr && RANDOMX_ARGON_ITERATIONS == 1 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
+	runTest("Cache initialization: AVX2", (flags & RANDOMX_FLAG_ARGON2_AVX2) && RANDOMX_ARGON_ITERATIONS == 3 && RANDOMX_ARGON_LANES == 1 && RANDOMX_ARGON_MEMORY == 262144 && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), []() {
 		initCache("test key 000");
 		uint64_t* cacheMemory = (uint64_t*)cache->memory;
 		assert(cacheMemory[0] == 0x974d73241c31484e);
