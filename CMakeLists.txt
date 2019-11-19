@@ -32,7 +32,7 @@ message(STATUS "CMake version ${CMAKE_VERSION}")
 
 project(RandomARQ)
 
-add_library(randomx
+set(randomx_sources
 src/aes_hash.cpp
 src/argon2_ref.c
 src/argon2_ssse3.c
@@ -87,6 +87,12 @@ function(add_flag flag)
   check_cxx_compiler_flag(${flag} ${supported_cxx})
   if(${${supported_cxx}})
     message(STATUS "Setting CXX flag ${flag}")
+    target_compile_options(randomx PRIVATE "${flag}")
+  endif()
+  string(REPLACE "-" "_" supported_c ${flag}_c)
+  check_c_compiler_flag(${flag} ${supported_c})
+  if(${${supported_c}})
+    message(STATUS "Setting C flag ${flag}")
     target_compile_options(randomx PRIVATE "${flag}")
   endif()
 endfunction()
@@ -176,20 +182,24 @@ target_include_directories(randomx
   $<INSTALL_INTERFACE:>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
+set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
+
+add_library(randomx ${randomx_sources})
+
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
 endif()
 
-set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
-
 set_target_properties(randomx PROPERTIES POSITION_INDEPENDENT_CODE ON
                                          CXX_STANDARD 11
-                                         CXX_STANDARD_REQUIRED ON)
+                                         CXX_STANDARD_REQUIRED ON
+                                         PUBLIC_HEADER src/randomx.h)
 
 include(GNUInstallDirs)
 install(TARGETS randomx
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_executable(randomx-tests
   src/tests/tests.cpp)
