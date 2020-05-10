@@ -1,22 +1,22 @@
 # Copyright (c) 2019, The Monero Project
 # Copyright (c) 2019, The Arqma Network
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -35,6 +35,7 @@ src/argon2_ref.c
 src/argon2_ssse3.c
 src/argon2_avx2.c
 src/bytecode_machine.cpp
+src/cpu.cpp
 src/dataset.cpp
 src/soft_aes.cpp
 src/virtual_memory.cpp
@@ -132,6 +133,13 @@ if(ARM_ID STREQUAL "aarch64" OR ARM_ID STREQUAL "arm64" OR ARM_ID STREQUAL "armv
     src/jit_compiler_a64.cpp)
   # cheat because cmake and ccache hate each other
   set_property(SOURCE src/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+
+  # not sure if this check is needed
+  include(CheckIncludeFile)
+  check_include_file(asm/hwcap.h HAVE_HWCAP)
+  if(HAVE_HWCAP)
+    add_definitions(-DHAVE_HWCAP)
+  endif()
 
   if(ARCH STREQUAL "native")
     add_flag("-march=native")
