@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RANDOMX_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #define RANDOMX_HASH_SIZE 32
 #define RANDOMX_DATASET_ITEM_SIZE 64
@@ -54,9 +55,38 @@ typedef struct randomx_dataset randomx_dataset;
 typedef struct randomx_cache randomx_cache;
 typedef struct randomx_vm randomx_vm;
 
+
 #if defined(__cplusplus)
+
+#ifdef __cpp_constexpr
+#define CONSTEXPR constexpr
+#else
+#define CONSTEXPR
+#endif
+
+inline CONSTEXPR randomx_flags operator |(randomx_flags a, randomx_flags b) {
+	return static_cast<randomx_flags>(static_cast<int>(a) | static_cast<int>(b));
+}
+inline CONSTEXPR randomx_flags operator &(randomx_flags a, randomx_flags b) {
+	return static_cast<randomx_flags>(static_cast<int>(a) & static_cast<int>(b));
+}
+inline randomx_flags& operator |=(randomx_flags& a, randomx_flags b) {
+	return a = a | b;
+}
+
 extern "C" {
 #endif
+
+/**
+ * @return The recommended flags to be used on the current machine.
+ *         Does not include:
+ *            RANDOMX_FLAG_LARGE_PAGES
+ *            RANDOMX_FLAG_FULL_MEM
+ *            RANDOMX_FLAG_SECURE
+ *         These flags must be added manually if desired.
+ *         On OpenBSD RANDOMX_FLAG_SECURE is enabled by default in JIT mode as W^X is enforced by the OS.
+ */
+RANDOMX_EXPORT randomx_flags randomx_get_flags(void);
 
 /**
  * Creates a randomx_cache structure and allocates memory for RandomX Cache.
@@ -207,6 +237,22 @@ RANDOMX_EXPORT void randomx_destroy_vm(randomx_vm *machine);
  *        be NULL and at least RANDOMX_HASH_SIZE bytes must be available for writing.
 */
 RANDOMX_EXPORT void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output);
+
+/**
+ * Paired functions used to calculate multiple RandomX hashes more efficiently.
+ * randomx_calculate_hash_first is called for the first input value.
+ * randomx_calculate_hash_next will output the hash value of the previous input.
+ *
+ * @param machine is a pointer to a randomx_vm structure. Must not be NULL.
+ * @param input is a pointer to memory to be hashed. Must not be NULL.
+ * @param inputSize is the number of bytes to be hashed.
+ * @param nextInput is a pointer to memory to be hashed for the next hash. Must not be NULL.
+ * @param nextInputSize is the number of bytes to be hashed for the next hash.
+ * @param output is a pointer to memory where the hash will be stored. Must not
+ *        be NULL and at least RANDOMX_HASH_SIZE bytes must be available for writing.
+*/
+RANDOMX_EXPORT void randomx_calculate_hash_first(randomx_vm* machine, const void* input, size_t inputSize);
+RANDOMX_EXPORT void randomx_calculate_hash_next(randomx_vm* machine, const void* nextInput, size_t nextInputSize, void* output);
 
 #if defined(__cplusplus)
 }

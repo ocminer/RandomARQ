@@ -61,8 +61,17 @@ struct randomx_cache {
 
 //A pointer to a standard-layout struct object points to its initial member
 static_assert(std::is_standard_layout<randomx_dataset>(), "randomx_dataset must be a standard-layout struct");
+
 //the following assert fails when compiling Debug in Visual Studio (JIT mode will crash in Debug)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && defined(_DEBUG)
+#define TO_STR(x) #x
+#define STR(x) TO_STR(x)
+#pragma message ( __FILE__ "(" STR(__LINE__) ") warning: check std::is_standard_layout<randomx_cache>() is disabled for Debug configuration. JIT mode will crash." )
+#undef STR
+#undef TO_STR
+#else
 static_assert(std::is_standard_layout<randomx_cache>(), "randomx_cache must be a standard-layout struct");
+#endif
 
 namespace randomx {
 
@@ -81,23 +90,14 @@ namespace randomx {
 	void initCacheCompile(randomx_cache*, const void*, size_t);
 	void initDatasetItem(randomx_cache* cache, uint8_t* out, uint64_t blockNumber);
 	void initDataset(randomx_cache* cache, uint8_t* dataset, uint32_t startBlock, uint32_t endBlock);
-	
-	inline randomx_argon2_impl* selectArgonImpl(randomx_flags flags)
-	{
-		if((flags & RANDOMX_FLAG_ARGON2) == 0)
-		{
-			return &randomx_argon2_fill_segment_ref;
+
+	inline randomx_argon2_impl* selectArgonImpl(randomx_flags flags) {
+		if (flags & RANDOMX_FLAG_ARGON2_AVX2) {
+			return randomx_argon2_impl_avx2();
 		}
-		randomx_argon2_impl* impl = nullptr;
-		if ((flags & RANDOMX_FLAG_ARGON2) == RANDOMX_FLAG_ARGON2_SSSE3) {
-			impl = randomx_argon2_impl_ssse3();
+		if (flags & RANDOMX_FLAG_ARGON2_SSSE3) {
+			return randomx_argon2_impl_ssse3();
 		}
-		if ((flags & RANDOMX_FLAG_ARGON2) == RANDOMX_FLAG_ARGON2_AVX2) {
-			impl = randomx_argon2_impl_avx2();
-		}
-		if (impl != nullptr) {
-			return impl;
-		}
-		throw std::runtime_error("Unsupported Argon2 implementation");
+		return &randomx_argon2_fill_segment_ref;
 	}
 }
