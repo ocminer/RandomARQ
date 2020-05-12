@@ -171,16 +171,16 @@ endif()
 target_include_directories(randomx
   PUBLIC
   $<INSTALL_INTERFACE:>
-  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
 endif()
 
-set_property(TARGET randomx PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET randomx PROPERTY CXX_STANDARD 11)
-set_property(TARGET randomx PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET randomx PROPERTY PUBLIC_HEADER src/randomx.h)
+set_target_properties(randomx PROPERTIES POSITION_INDEPENDENT_CODE ON
+                                         CXX_STANDARD 11
+                                         CXX_STANDARD_REQUIRED ON
+                                         PUBLIC_HEADER src/randomx.h)
 
 include(GNUInstallDirs)
 install(TARGETS randomx
@@ -192,16 +192,17 @@ add_executable(randomx-tests
   src/tests/tests.cpp)
 target_link_libraries(randomx-tests
   PRIVATE randomx)
-set_property(TARGET randomx-tests PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET randomx-tests PROPERTY CXX_STANDARD 11)
+
+set_target_properties(randomx-tests PROPERTIES CXX_STANDARD 11
+                                               POSITION_INDEPENDENT_CODE ON)
 
 add_executable(randomx-codegen
   src/tests/code-generator.cpp)
 target_link_libraries(randomx-codegen
   PRIVATE randomx)
 
-set_property(TARGET randomx-codegen PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET randomx-codegen PROPERTY CXX_STANDARD 11)
+set_target_properties(randomx-codegen PROPERTIES  CXX_STANDARD 11
+                                                  POSITION_INDEPENDENT_CODE ON)
 
 if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -229,5 +230,6 @@ if(NOT HAVE_CXX_ATOMICS)
   target_link_libraries(randomx-benchmark
     PRIVATE "atomic")
 endif()
-set_property(TARGET randomx-benchmark PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET randomx-benchmark PROPERTY CXX_STANDARD 11)
+
+set_target_properties(randomx-benchmark PROPERTIES CXX_STANDARD 11
+                                                   POSITION_INDEPENDENT_CODE ON)
