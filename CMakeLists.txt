@@ -98,7 +98,7 @@ if(ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "a
 
   if(MSVC)
     enable_language(ASM_MASM)
-    target_sources(randomx PRIVATE 
+    target_sources(randomx PRIVATE
       src/jit_compiler_x86_static.asm)
 
     set_property(SOURCE src/jit_compiler_x86_static.asm PROPERTY LANGUAGE ASM_MASM)
@@ -171,7 +171,7 @@ endif()
 target_include_directories(randomx
   PUBLIC
   $<INSTALL_INTERFACE:>
-  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src>)
+  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
