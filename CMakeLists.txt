@@ -1,5 +1,5 @@
-# Copyright (c) 2019, The Monero Project
-# Copyright (c) 2019, The Arqma Network
+# Copyright (c) 2019-2020, The Monero Project
+# Copyright (c) 2019-2020, The Arqma Network
 #
 # All rights reserved.
 #
@@ -27,11 +27,12 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7)
+message(STATUS "CMake version ${CMAKE_VERSION}")
 
 project(RandomARQ)
 
-set(randomx_sources
+add_library(randomx
 src/aes_hash.cpp
 src/argon2_ref.c
 src/argon2_ssse3.c
@@ -86,24 +87,19 @@ function(add_flag flag)
   check_cxx_compiler_flag(${flag} ${supported_cxx})
   if(${${supported_cxx}})
     message(STATUS "Setting CXX flag ${flag}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
-  endif()
-  string(REPLACE "-" "_" supported_c ${flag}_c)
-  check_c_compiler_flag(${flag} ${supported_c})
-  if(${${supported_c}})
-    message(STATUS "Setting C flag ${flag}")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" PARENT_SCOPE)
+    target_compile_options(randomx PRIVATE "${flag}")
   endif()
 endfunction()
 
 # x86-64
 if(ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
-  list(APPEND randomx_sources
+  target_sources(randomx PRIVATE
     src/jit_compiler_x86.cpp)
 
   if(MSVC)
     enable_language(ASM_MASM)
-    list(APPEND randomx_sources src/jit_compiler_x86_static.asm)
+    target_sources(randomx PRIVATE 
+      src/jit_compiler_x86_static.asm)
 
     set_property(SOURCE src/jit_compiler_x86_static.asm PROPERTY LANGUAGE ASM_MASM)
 
@@ -116,7 +112,8 @@ if(ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "a
     add_custom_target(generate-asm
       DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/asm/configuration.asm)
   else()
-    list(APPEND randomx_sources src/jit_compiler_x86_static.S)
+    target_sources(randomx PRIVATE
+      src/jit_compiler_x86_static.S)
 
      # cheat because cmake and ccache hate each other
      set_property(SOURCE src/jit_compiler_x86_static.S PROPERTY LANGUAGE C)
@@ -149,7 +146,7 @@ endif()
 
 # ARMv8
 if(ARM_ID STREQUAL "aarch64" OR ARM_ID STREQUAL "arm64" OR ARM_ID STREQUAL "armv8-a")
-  list(APPEND randomx_sources
+  target_sources(randomx PRIVATE
     src/jit_compiler_a64_static.S
     src/jit_compiler_a64.cpp)
   # cheat because cmake and ccache hate each other
@@ -171,9 +168,10 @@ if(ARM_ID STREQUAL "aarch64" OR ARM_ID STREQUAL "arm64" OR ARM_ID STREQUAL "armv
   endif()
 endif()
 
-set(RANDOMX_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomX Include path")
-
-add_library(randomx ${randomx_sources})
+target_include_directories(randomx
+  PUBLIC
+  $<INSTALL_INTERFACE:>
+  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src>
 
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
@@ -214,8 +212,9 @@ add_executable(randomx-benchmark
   src/tests/benchmark.cpp
   src/tests/affinity.cpp)
 target_link_libraries(randomx-benchmark
-  PRIVATE randomx
-  PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+  PRIVATE
+    randomx
+    Threads::Threads)
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("

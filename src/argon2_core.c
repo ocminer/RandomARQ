@@ -70,6 +70,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /***************Instance and Position constructors**********/
+
 static void load_block(block *dst, const void *input) {
 	unsigned i;
 	for (i = 0; i < ARGON2_QWORDS_IN_BLOCK; ++i) {
@@ -393,10 +394,9 @@ int randomx_argon2_initialize(argon2_instance_t *instance, argon2_context *conte
 	/* Hashing all inputs */
 	rxa2_initial_hash(blockhash, context, instance->type);
 	/* Zeroing 8 extra bytes */
-	// rxa2_clear_internal_memory(blockhash + ARGON2_PREHASH_DIGEST_LENGTH, ARGON2_PREHASH_SEED_LENGTH - ARGON2_PREHASH_DIGEST_LENGTH);
+	/*rxa2_clear_internal_memory(blockhash + ARGON2_PREHASH_DIGEST_LENGTH, ARGON2_PREHASH_SEED_LENGTH - ARGON2_PREHASH_DIGEST_LENGTH);*/
 
-	/* 3. Creating first blocks, we always have at least two blocks in a slice
-	 */
+	/* 3. Creating first blocks, we always have at least two blocks in a slice */
 	rxa2_fill_first_blocks(blockhash, instance);
 
 	return ARGON2_OK;

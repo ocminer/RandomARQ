@@ -1053,7 +1053,7 @@ int main() {
 		assert(cacheMemory[1568413] == 0x83ff7e51b96762f);
 		assert(cacheMemory[33554431] == 0x9c3f146fa4fa223a);
 	});
-
+	
 	if (cache != nullptr)
 		randomx_release_cache(cache);
 
