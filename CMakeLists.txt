@@ -1,5 +1,5 @@
-# Copyright (c) 2019, The Monero Project
-# Copyright (c) 2019, The Arqma Network
+# Copyright (c) 2019-2020, The Monero Project
+# Copyright (c) 2019-2020, The Arqma Network
 #
 # All rights reserved.
 #
@@ -27,7 +27,7 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7)
 
 project(RandomARQ)
 
