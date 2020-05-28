@@ -171,7 +171,7 @@ endif()
 target_include_directories(randomx
   PUBLIC
   $<INSTALL_INTERFACE:>
-  $<BUILD_INTERFACE:>${CMAKE_CURRENT_SOURCE_DIR}/src)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
