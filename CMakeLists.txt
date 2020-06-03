@@ -177,16 +177,16 @@ if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
 endif()
 
+set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
+
 set_target_properties(randomx PROPERTIES POSITION_INDEPENDENT_CODE ON
                                          CXX_STANDARD 11
-                                         CXX_STANDARD_REQUIRED ON
-                                         PUBLIC_HEADER src/randomx.h)
+                                         CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 install(TARGETS randomx
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 add_executable(randomx-tests
   src/tests/tests.cpp)
