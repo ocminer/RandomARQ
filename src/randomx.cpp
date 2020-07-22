@@ -42,7 +42,7 @@ extern "C" {
 	randomx_flags randomx_get_flags() {
 		randomx_flags flags = RANDOMX_HAVE_COMPILER ? RANDOMX_FLAG_JIT : RANDOMX_FLAG_DEFAULT;
 		randomx::Cpu cpu;
-#ifdef __OpenBSD__
+#ifdef RANDOMX_FORCE_SECURE
 		if (flags == RANDOMX_FLAG_JIT) {
 			flags |= RANDOMX_FLAG_SECURE;
 		}
@@ -331,8 +331,7 @@ extern "C" {
 	void randomx_vm_set_cache(randomx_vm *machine, randomx_cache* cache) {
 		assert(machine != nullptr);
 		assert(cache != nullptr && cache->isInitialized());
-		if(machine->cacheKey != cache->cacheKey)
-		{
+		if (machine->cacheKey != cache->cacheKey || machine->getMemory() != cache->memory) {
 			machine->setCache(cache);
 			machine->cacheKey = cache->cacheKey;
 		}
