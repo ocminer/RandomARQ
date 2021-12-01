@@ -35,6 +35,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #else
 #ifdef __APPLE__
 #include <mach/vm_statistics.h>
+#include <TargetConditionals.h>
+#include <AvailabilityMacros.h>
+# if TARGET_OS_OSX
+#  define USE_PTHREAD_JIT_WP	1
+#  include <pthread.h>
+# endif
 #endif
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -99,9 +105,22 @@ void* allocMemoryPages(std::size_t bytes) {
 	#else
 		#define RESERVED_FLAGS 0
 	#endif
-	mem = mmap(nullptr, bytes, PAGE_READWRITE | RESERVED_FLAGS, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	#ifdef USE_PTHREAD_JIT_WP
+		#define MEXTRA MAP_JIT
+		#define PEXTRA	PROT_EXEC
+	#else
+		#define MEXTRA 0
+		#define PEXTRA	0
+	#endif
+	mem = mmap(nullptr, bytes, PAGE_READWRITE | RESERVED_FLAGS | PEXTRA, MAP_ANONYMOUS | MAP_PRIVATE | MEXTRA, -1, 0);
 	if (mem == MAP_FAILED)
 		throw std::runtime_error("allocMemoryPages - mmap failed");
+#if defined(USE_PTHREAD_JIT_WP) && defined(MAC_OS_VERSION_11_0) \
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0
+	if (__builtin_available(macOS 11.0, *)) {
+		pthread_jit_write_protect_np(false);
+	}
+#endif
 #endif
 	return mem;
 }
@@ -119,11 +138,29 @@ static inline void pageProtect(void* ptr, std::size_t bytes, int rules) {
 }
 
 void setPagesRW(void* ptr, std::size_t bytes) {
+#if defined(USE_PTHREAD_JIT_WP) && defined(MAC_OS_VERSION_11_0) \
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0
+	if (__builtin_available(macOS 11.0, *)) {
+		pthread_jit_write_protect_np(false);
+	} else {
+		pageProtect(ptr, bytes, PAGE_READWRITE);
+	}
+#else
 	pageProtect(ptr, bytes, PAGE_READWRITE);
+#endif
 }
 
 void setPagesRX(void* ptr, std::size_t bytes) {
+#if defined(USE_PTHREAD_JIT_WP) && defined(MAC_OS_VERSION_11_0) \
+	&& MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0
+	if (__builtin_available(macOS 11.0, *)) {
+		pthread_jit_write_protect_np(true);
+	} else {
+		pageProtect(ptr, bytes, PAGE_EXECUTE_READ);
+	}
+#else
 	pageProtect(ptr, bytes, PAGE_EXECUTE_READ);
+#endif
 }
 
 void setPagesRWX(void* ptr, std::size_t bytes) {

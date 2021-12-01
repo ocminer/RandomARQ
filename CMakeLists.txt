@@ -87,7 +87,13 @@ function(add_flag flag)
   check_cxx_compiler_flag(${flag} ${supported_cxx})
   if(${${supported_cxx}})
     message(STATUS "Setting CXX flag ${flag}")
-    target_compile_options(randomx PRIVATE "${flag}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
+  endif()
+  string(REPLACE "-" "_" supported_c ${flag}_c)
+  check_c_compiler_flag(${flag} ${supported_c})
+  if(${${supported_c}})
+    message(STATUS "Setting C flag ${flag}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -104,6 +110,9 @@ if(ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "a
     set_property(SOURCE src/jit_compiler_x86_static.asm PROPERTY LANGUAGE ASM_MASM)
 
     set_source_files_properties(src/argon2_avx2.c COMPILE_FLAGS /arch:AVX2)
+
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /DRELWITHDEBINFO")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /DRELWITHDEBINFO")
 
     add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/asm/configuration.asm
       COMMAND powershell -ExecutionPolicy Bypass -File h2inc.ps1 ..\\src\\configuration.h > ..\\src\\asm\\configuration.asm SET ERRORLEVEL = 0
@@ -151,7 +160,7 @@ if(ARM_ID STREQUAL "aarch64" OR ARM_ID STREQUAL "arm64" OR ARM_ID STREQUAL "armv
     src/jit_compiler_a64.cpp)
   # cheat because cmake and ccache hate each other
   set_property(SOURCE src/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
-  set_property(SOURCE src/jit_compiler_x86_static.S PROPERTY XCODE_EXPLICIT_FILE_TYPE sourcecode.asm)
+  set_property(SOURCE src/jit_compiler_a64_static.S PROPERTY XCODE_EXPLICIT_FILE_TYPE sourcecode.asm)
 
   # not sure if this check is needed
   include(CheckIncludeFile)
@@ -173,20 +182,22 @@ target_include_directories(randomx
   $<INSTALL_INTERFACE:>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 
+set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
+
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
 endif()
 
-set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
-
 set_target_properties(randomx PROPERTIES POSITION_INDEPENDENT_CODE ON
                                          CXX_STANDARD 11
-                                         CXX_STANDARD_REQUIRED ON)
+                                         CXX_STANDARD_REQUIRED ON
+                                         PUBLIC_HEADER src/randomx.h)
 
 include(GNUInstallDirs)
 install(TARGETS randomx
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_executable(randomx-tests
   src/tests/tests.cpp)
@@ -204,18 +215,20 @@ target_link_libraries(randomx-codegen
 set_target_properties(randomx-codegen PROPERTIES  CXX_STANDARD 11
                                                   POSITION_INDEPENDENT_CODE ON)
 
-if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads)
-endif()
-
 add_executable(randomx-benchmark
   src/tests/benchmark.cpp
   src/tests/affinity.cpp)
 target_link_libraries(randomx-benchmark
   PRIVATE
-    randomx
-    Threads::Threads)
+    randomx)
+
+if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+endif()
+if(Threads_FOUND)
+  target_link_libraries(randomx-benchmark PRIVATE Threads::Threads)
+endif()
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("
