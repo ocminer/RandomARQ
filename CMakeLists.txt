@@ -32,7 +32,7 @@ message(STATUS "CMake version ${CMAKE_VERSION}")
 
 project(RandomARQ)
 
-set(randomx_sources
+add_library(randomx
 src/aes_hash.cpp
 src/argon2_ref.c
 src/argon2_ssse3.c
@@ -87,13 +87,13 @@ function(add_flag flag)
   check_cxx_compiler_flag(${flag} ${supported_cxx})
   if(${${supported_cxx}})
     message(STATUS "Setting CXX flag ${flag}")
-    target_compile_options(randomx PRIVATE "${flag}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
   endif()
   string(REPLACE "-" "_" supported_c ${flag}_c)
   check_c_compiler_flag(${flag} ${supported_c})
   if(${${supported_c}})
     message(STATUS "Setting C flag ${flag}")
-    target_compile_options(randomx PRIVATE "${flag}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" PARENT_SCOPE)
   endif()
 endfunction()
 
@@ -184,8 +184,6 @@ target_include_directories(randomx
 
 set(RANDOMARQ_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/src" CACHE STRING "RandomARQ Include path")
 
-add_library(randomx ${randomx_sources})
-
 if(TARGET generate-asm)
   add_dependencies(randomx generate-asm)
 endif()
@@ -217,18 +215,20 @@ target_link_libraries(randomx-codegen
 set_target_properties(randomx-codegen PROPERTIES  CXX_STANDARD 11
                                                   POSITION_INDEPENDENT_CODE ON)
 
-if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads)
-endif()
-
 add_executable(randomx-benchmark
   src/tests/benchmark.cpp
   src/tests/affinity.cpp)
 target_link_libraries(randomx-benchmark
   PRIVATE
-    randomx
-    Threads::Threads)
+    randomx)
+
+if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+endif()
+if(Threads_FOUND)
+  target_link_libraries(randomx-benchmark PRIVATE Threads::Threads)
+endif()
 
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("

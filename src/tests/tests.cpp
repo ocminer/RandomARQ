@@ -1026,9 +1026,6 @@ int main() {
 
 	runTest("Hash test 2e (compiler)", RANDOMX_HAVE_COMPILER && stringsEqual(RANDOMX_ARGON_SALT, "RandomARQ\x01"), test_e);
 
-	randomx_destroy_vm(vm);
-	vm = nullptr;
-
 	auto flags = randomx_get_flags();
 
 	randomx_release_cache(cache);
@@ -1072,16 +1069,16 @@ int main() {
 		randomx_calculate_hash_next(vm, input3, sizeof(input3) - 1, &hash2);
 		randomx_calculate_hash_last(vm, &hash3);
 
-		assert(equalsHex(hash1, "639183aae1bf4c9a35884cb46b09cad9175f04efd7684e7262a0ac1c2f0b4e3f"));
-		assert(equalsHex(hash2, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
-		assert(equalsHex(hash3, "c36d4ed4191e617309867ed66a443be4075014e2b061bcdaf9ce7b721d2b77a8"));
+		assert(equalsHex(hash1, "27f66e4650eb5657513e76c140e09e59336786f21fbef1ed6ff40fc21538221e"));
+		assert(equalsHex(hash2, "6b04e883e07e4e6c072cb064d9aed0fa5a8f7cbbeb7fd3ba653d274ebd4925b0"));
+		assert(equalsHex(hash3, "219d023039c92bdf98df769a46d2cea6f1f3ceafcba2334edfbd90499a4b516f"));
 	});
 
 	runTest("Preserve rounding mode", RANDOMX_FREQ_CFROUND > 0, []() {
 		rx_set_rounding_mode(RoundToNearest);
 		char hash[RANDOMX_HASH_SIZE];
 		calcStringHash("test key 000", "Lorem ipsum dolor sit amet", &hash);
-		assert(equalsHex(hash, "300a0adb47603dedb42228ccb2b211104f4da45af709cd7547cd049e9489c969"));
+		assert(equalsHex(hash, "6b04e883e07e4e6c072cb064d9aed0fa5a8f7cbbeb7fd3ba653d274ebd4925b0"));
 		assert(rx_get_rounding_mode() == RoundToNearest);
 	});
 
