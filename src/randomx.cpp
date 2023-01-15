@@ -113,6 +113,10 @@ extern "C" {
 				cache = nullptr;
 			}
 		}
+		if (cache && cache->memory == nullptr) {
+			randomx_release_cache(cache);
+			cache = nullptr;
+		}
 
 		return cache;
 	}
@@ -131,10 +135,7 @@ extern "C" {
 
 	void randomx_release_cache(randomx_cache* cache) {
 		assert(cache != nullptr);
-		if(cache->memory != nullptr)
-		{
-			cache->dealloc(cache);
-		}
+		cache->dealloc(cache);
 		delete cache;
 	}
 
@@ -163,6 +164,10 @@ extern "C" {
 				randomx_release_dataset(dataset);
 				dataset = nullptr;
 			}
+		}
+		if (dataset && dataset->memory == nullptr) {
+			randomx_release_dataset(dataset);
+			dataset = nullptr;
 		}
 
 		return dataset;
